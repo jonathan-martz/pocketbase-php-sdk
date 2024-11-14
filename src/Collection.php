@@ -97,8 +97,6 @@ class Collection
         $getParams = !empty($queryParams) ? http_build_query($queryParams) : "";
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
 
-        var_dump($response);
-
         return json_decode($response, JSON_FORCE_OBJECT);
     }
 
