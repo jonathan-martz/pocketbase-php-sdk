@@ -91,11 +91,13 @@ class Collection
      * @param array $queryParams
      * @return array
      */
-    public function getFullList(int $batch = 200, array $queryParams = []): array
+    public function getFullList(array $queryParams, int $batch = 200): array
     {
-        $queryParams = [... $queryParams, ['perPage' => $batch]];
+        $queryParams = [... $queryParams, 'perPage'=> $batch];
         $getParams = !empty($queryParams) ? http_build_query($queryParams) : "";
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
+
+        var_dump($response);
 
         return json_decode($response, JSON_FORCE_OBJECT);
     }
