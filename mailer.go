@@ -56,8 +56,6 @@ func main() {
         log.Fatal("PHPUnit output is empty. Please check your configuration.")
     }
 
-fmt.Println(output.String())
-
     // Parse the JSON output
     var result map[string]interface{}
     if err := json.Unmarshal(output.Bytes(), &result); err != nil {
