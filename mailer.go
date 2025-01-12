@@ -15,7 +15,7 @@ func main() {
 	now := time.Now()
 
 // Define flags
-    smtpPass := flag.String("test", "", "SMTP password")
+    smtpPass := flag.String("password", "", "SMTP password")
     sender := flag.String("sender", "", "SMTP sender")
     smtpUser := flag.String("user", "", "SMTP username")
 
