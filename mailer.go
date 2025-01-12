@@ -6,6 +6,7 @@ import (
     "flag"
     "fmt"
     "log"
+    "math/rand"
     "net/smtp"
     "os/exec"
     "time"
@@ -69,12 +70,12 @@ func main() {
     }
 
     // Check if 'fails' is greater than 0
-    fails, ok := counts["failed"].(float64)
+    failed, ok := counts["failed"].(float64)
     if !ok {
         log.Fatal("'fails' field not found in counts.")
     }
 
-    if fails > 0 {
+    if failed > 0 {
         // Serialize the counts field to JSON for the email body
         countsJSON, err := json.MarshalIndent(counts, "", "  ")
         if err != nil {
@@ -82,7 +83,8 @@ func main() {
         }
 
         // Prepare the email body
-        emailBody := fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, string(countsJSON))
+        messageID := fmt.Sprintf("<%d.%d@%s>", now.UnixNano(), rand.Int(), smtpHost)
+        emailBody := fmt.Sprintf("Subject: %s\r\n\r\n Message-ID: %s \r\n\r\n %s", subject, messageID, string(countsJSON))
 
         // Connect to the SMTP server
         auth := smtp.PlainAuth("", *smtpUser, *smtpPass, smtpHost)
