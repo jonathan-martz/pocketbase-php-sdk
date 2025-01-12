@@ -4,6 +4,12 @@
 ##### This Repository are in active Development
 ***
 
+***
+### Gitlab is the one for Packagist, but they should both be up to Date.
+##### Github: https://github.com/jonathan-martz/pocketbase-php-sdk/
+##### Gitlab: https://gitlab.jonathan-martz.de/softwareentwicklung/pocketbase-php-sdk
+***
+
 ``` bash
 composer require jonathan-martz/pocketbase-php-sdk
 ```
@@ -11,8 +17,8 @@ composer require jonathan-martz/pocketbase-php-sdk
 ``` php
 // Example init and use
 use \Pb\Client as pb;
-$pb = new pb('https://backend-shop.mkay.dev');
-var_dump($pb->collection('countries')->getList());
+$pb = new pb('https://admin.pocketbase.dev');
+var_dump($pb->collection('users')->getList());
 ```
 
 ***
