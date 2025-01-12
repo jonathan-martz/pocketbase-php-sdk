@@ -5,6 +5,8 @@ on:
     branches: [tdd]
   pull_request:
     branches: [tdd]
+  schedule:
+    - cron: '0 * * * *'
 
 jobs:
   run-mailer:
