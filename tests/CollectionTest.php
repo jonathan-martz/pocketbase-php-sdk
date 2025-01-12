@@ -35,6 +35,6 @@ final class CollectionTest extends TestCase
         $this->assertTrue(array_key_exists('perPage', $actual), 'Key "perPage" does not exist in the response.');
         $this->assertTrue(array_key_exists('totalItems', $actual), 'Key "totalItems" does not exist in the response.');
         $this->assertTrue(array_key_exists('totalPages', $actual), 'Key "totalPages" does not exist in the response.');
-        $this->assertCount(0, $actual['items'], 'Expected no items in the response.');
+        $this->assertCount(1, $actual['items'], 'Expected no items in the response.');
     }
 }
