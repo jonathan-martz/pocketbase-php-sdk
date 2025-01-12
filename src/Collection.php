@@ -70,7 +70,6 @@ class Collection
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $response = curl_exec($ch);
-        // var_dump($response);
     }
 
     /**
