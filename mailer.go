@@ -6,7 +6,6 @@ import (
     "flag"
     "fmt"
     "log"
-    "math/rand"
     "net/smtp"
     "os/exec"
     "time"
@@ -83,8 +82,7 @@ func main() {
         }
 
         // Prepare the email body
-        messageID := fmt.Sprintf("<%d.%d@%s>", now.UnixNano(), rand.Int(), smtpHost)
-        emailBody := fmt.Sprintf("Subject: %s\r\n\r\n Message-ID: %s \r\n\r\n %s", subject, messageID, string(countsJSON))
+        emailBody := fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, string(countsJSON))
 
         // Connect to the SMTP server
         auth := smtp.PlainAuth("", *smtpUser, *smtpPass, smtpHost)
