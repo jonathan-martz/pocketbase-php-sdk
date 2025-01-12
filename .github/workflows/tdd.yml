@@ -1,0 +1,30 @@
+name: Run Mailer
+
+on:
+  push:
+    branches: [tdd]
+  pull_request:
+    branches: [tdd]
+
+jobs:
+  run-mailer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.4'
+
+      - name: Run mailer
+        env:
+          MAILER_SENDER: ${{ secrets.MAILER_SENDER }}
+          MAILER_USER: ${{ secrets.MAILER_USER }}
+          MAILER_PASSWORD: ${{ secrets.MAILER_PASSWORD }}
+        run: |
+          go run mailer.go \
+            -sender ${{ secrets.MAILER_SENDER }} \
+            -smtpUser ${{ secrets.MAILER_USER }} \
+            -smtpPassword ${{ secrets.MAILER_PASSWORD }}
