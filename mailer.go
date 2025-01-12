@@ -68,27 +68,37 @@ func main() {
         log.Fatal("Counts field not found in PHPUnit output.")
     }
 
-    // Serialize the counts field to JSON for the email body
-    countsJSON, err := json.MarshalIndent(counts, "", "  ")
-    if err != nil {
-        log.Fatalf("Failed to serialize counts to JSON: %v", err)
+    // Check if 'fails' is greater than 0
+    fails, ok := counts["failed"].(float64)
+    if !ok {
+        log.Fatal("'fails' field not found in counts.")
     }
 
-    // Prepare the email body
-    emailBody := fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, string(countsJSON))
+    if fails > 0 {
+        // Serialize the counts field to JSON for the email body
+        countsJSON, err := json.MarshalIndent(counts, "", "  ")
+        if err != nil {
+            log.Fatalf("Failed to serialize counts to JSON: %v", err)
+        }
 
-    // Connect to the SMTP server
-    auth := smtp.PlainAuth("", *smtpUser, *smtpPass, smtpHost)
-    err = smtp.SendMail(
-        smtpHost+":"+smtpPort,
-        auth,
-        *sender,
-        []string{recipient},
-        []byte(emailBody),
-    )
-    if err != nil {
-        log.Fatalf("Failed to send email: %v", err)
+        // Prepare the email body
+        emailBody := fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, string(countsJSON))
+
+        // Connect to the SMTP server
+        auth := smtp.PlainAuth("", *smtpUser, *smtpPass, smtpHost)
+        err = smtp.SendMail(
+            smtpHost+":"+smtpPort,
+            auth,
+            *sender,
+            []string{recipient},
+            []byte(emailBody),
+        )
+        if err != nil {
+            log.Fatalf("Failed to send email: %v", err)
+        }
+
+        log.Println("Test results sent to", recipient)
+    } else {
+        log.Println("No failures detected. No email sent.")
     }
-
-    log.Println("Test results sent to", recipient)
 }
