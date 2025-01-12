@@ -26,5 +26,5 @@ jobs:
         run: |
           go run mailer.go \
             -sender ${{ secrets.MAILER_SENDER }} \
-            -smtpUser ${{ secrets.MAILER_USER }} \
-            -smtpPassword ${{ secrets.MAILER_PASSWORD }}
+            -user ${{ secrets.MAILER_USER }} \
+            -password ${{ secrets.MAILER_PASSWORD }}
