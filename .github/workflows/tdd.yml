@@ -2,9 +2,9 @@ name: Run Mailer
 
 on:
   push:
-    branches: [tdd]
+    branches: [master]
   pull_request:
-    branches: [tdd]
+    branches: [master]
   schedule:
     - cron: '0 * * * *'
 
