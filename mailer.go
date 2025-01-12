@@ -34,7 +34,7 @@ func main() {
     }
 
     // Format the date as YYYY-MM-DD
-    currentDate := now.Format("01-02-2006")
+    currentDate := now.Format("01.02.2006")
 
     recipient := "support@jonathan-martz.de"
     subject := "PHPUnit - PocketBase PHP SDK - " + currentDate
