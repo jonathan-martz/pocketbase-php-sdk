@@ -19,11 +19,12 @@ class Settings
 
     /**
      * @param string $url
-     * @param string $collection
+     * @param string $token
      */
-    public function __construct(string $url)
+    public function __construct(string $url, string $token)
     {
         $this->url = $url;
+        self::$token = $token;
     }
 
     public function authAsAdmin(string $email, string $password): void
