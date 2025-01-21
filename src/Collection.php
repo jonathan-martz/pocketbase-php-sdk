@@ -25,11 +25,13 @@ class Collection
     /**
      * @param string $url
      * @param string $collection
+     * @param string $token
      */
-    public function __construct(string $url, string $collection)
+    public function __construct(string $url, string $collection, string $token)
     {
         $this->url = $url;
         $this->collection = $collection;
+        self::$token = $token;
     }
 
     /**
