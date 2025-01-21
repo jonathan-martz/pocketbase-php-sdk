@@ -27,11 +27,13 @@ class Collection
      * @param string $collection
      * @param string $token
      */
-    public function __construct(string $url, string $collection, string $token)
+    public function __construct(string $url, string $collection, string $token = '')
     {
         $this->url = $url;
         $this->collection = $collection;
-        self::$token = $token;
+        if (!empty($token)) {
+            self::$token = $token;
+        }
     }
 
     /**
@@ -57,7 +59,7 @@ class Collection
      */
     public function upload(string $recordId, string $field, string $filepath): void
     {
-        $ch = curl_init($this->url . "/api/collections/".$this->collection."/records/" . $recordId);
+        $ch = curl_init($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId);
         curl_setopt_array($ch, array(
             CURLOPT_CUSTOMREQUEST => 'PATCH',
             CURLOPT_POSTFIELDS => array(
@@ -79,12 +81,13 @@ class Collection
      * @param string $password
      * @return void
      */
-    public function authAsUser(string $email, string $password)
+    public function authAsUser(string $email, string $password): string
     {
         $result = $this->doRequest($this->url . "/api/collections/users/auth-with-password", 'POST', ['identity' => $email, 'password' => $password]);
         if (!empty($result['token'])) {
             self::$token = $result['token'];
         }
+        return $result;
     }
 
     /**
@@ -94,7 +97,7 @@ class Collection
      */
     public function getFullList(array $queryParams, int $batch = 200): array
     {
-        $queryParams = [... $queryParams, 'perPage'=> $batch];
+        $queryParams = [... $queryParams, 'perPage' => $batch];
         $getParams = !empty($queryParams) ? http_build_query($queryParams) : "";
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
 
@@ -121,7 +124,7 @@ class Collection
      */
     public function create(array $bodyParams = [], array $queryParams = []): string
     {
-        return $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records", 'POST', json_encode($bodyParams));
+        return $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records", 'POST', $bodyParams);
     }
 
     /**
@@ -133,7 +136,7 @@ class Collection
     public function update(string $recordId, array $bodyParams = [], array $queryParams = []): void
     {
         // Todo bodyParams equals json, currently workaround
-        $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'PATCH', json_encode($bodyParams));
+        $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'PATCH', $bodyParams);
     }
 
     /**
@@ -154,6 +157,8 @@ class Collection
      */
     public function doRequest(string $url, string $method, $bodyParams = []): string
     {
+        // TODO move doRequestIntoService ?
+        // TODO replace curl with HttpClient
         $ch = curl_init();
 
         if (self::$token != '') {
@@ -193,11 +198,16 @@ class Collection
      * @param string $password
      * @return void
      */
-    public function authAsAdmin(string $email, string $password): void
+    public function authAsAdmin(string $email, string $password): string
     {
         $bodyParams['identity'] = $email;
         $bodyParams['password'] = $password;
-        $output = $this->doRequest($this->url . "/api/admins/auth-with-password", 'POST', $bodyParams);
-        self::$token = json_decode($output, true)['token'];
+        $output = $this->doRequest($this->url . "/api/collections/_superusers/auth-with-password", 'POST', $bodyParams);
+        $token = json_decode($output, true)['token'];
+        if ($token) {
+            self::$token = $token;
+        }
+
+        return $output;
     }
 }

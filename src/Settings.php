@@ -21,7 +21,7 @@ class Settings
      * @param string $url
      * @param string $token
      */
-    public function __construct(string $url, string $token)
+    public function __construct(string $url, string $token = '')
     {
         $this->url = $url;
         self::$token = $token;
@@ -31,16 +31,10 @@ class Settings
     {
         $bodyParams['identity'] = $email;
         $bodyParams['password'] = $password;
-        $output = $this->doRequest($this->url . "/api/admins/auth-with-password", 'POST', $bodyParams);
+        $output = $this->doRequest($this->url . "/api/collections/_superusers/auth-with-password", 'POST', $bodyParams);
         self::$token = json_decode($output, true)['token'];
     }
 
-    /**
-     * @param string $recordId
-     * @param string $url
-     * @param string $method
-     * @return bool|string
-     */
     public function doRequest(string $url, string $method, $bodyParams = []): string
     {
         $ch = curl_init();
@@ -66,9 +60,6 @@ class Settings
         return $output;
     }
 
-    /**
-     * @return void
-     */
     public function getAll():array
     {
         return json_decode($this->doRequest($this->url . '/api/settings', 'GET', []), true);

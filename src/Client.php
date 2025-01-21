@@ -5,7 +5,7 @@ namespace Pb;
 class Client
 {
     private string $url;
-    private string $token = '';
+    public string $token = '';
 
     public function __construct(string $url)
     {
@@ -25,5 +25,10 @@ class Client
     public function setAuthToken(string $token): void
     {
         $this->token = $token;
+    }
+
+    public function getAuthToken(): string
+    {
+        return $this->token;
     }
 }
