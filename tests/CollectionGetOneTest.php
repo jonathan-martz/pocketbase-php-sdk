@@ -27,9 +27,7 @@ final class CollectionGetOneTest extends TestCase
     public function test_getOneWrongId(): void
     {
         $id = '6588yk36406qqva';
-
         $this->expectException(ClientException::class);
-
         $this->collection->getOne($id);
     }
 }

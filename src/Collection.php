@@ -22,7 +22,7 @@ class Collection
     /**
      * @var string
      */
-    private static string $token = '';
+    public static string $token = '';
 
     /**
      * @param string $url
@@ -81,14 +81,10 @@ class Collection
         $response = curl_exec($ch);
     }
 
-    /**
-     * @param string $email
-     * @param string $password
-     * @return void
-     */
     public function authAsUser(string $email, string $password): string
     {
         $result = $this->doRequest($this->url . "/api/collections/users/auth-with-password", 'POST', ['identity' => $email, 'password' => $password]);
+        var_dump($result);
         if (!empty($result['token'])) {
             self::$token = $result['token'];
         }
@@ -123,7 +119,7 @@ class Collection
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
 
         $data = json_decode($response, JSON_FORCE_OBJECT);
-        if(empty($data['items']) || count($data['items']) < 1){
+        if (empty($data['items']) || count($data['items']) < 1) {
             throw new exception\FirstListItemNotFoundException('First doesnt exists');
         }
 
@@ -163,14 +159,22 @@ class Collection
         $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'DELETE');
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function doRequest(string $url, string $method, $bodyParams = []): string
     {
+        $tmp = $bodyParams;
+        $bodyParams = [];
+        $bodyParams['json'] = $tmp;
+        $bodyParams['headers']['Content-Type'] = 'application/json';
+
         if (self::$token != '') {
-            // TODO token ?
+            $bodyParams['headers']['Authorization'] = 'Bearer ' . self::$token;
         }
 
         $client = new \GuzzleHttp\Client();
-        $response = $client->request($method, $url,$bodyParams);
+        $response = $client->request($method, $url, $bodyParams);
         return $response->getBody()->getContents() ?? '';
     }
 
@@ -185,6 +189,7 @@ class Collection
         $output = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'GET');
         return json_decode($output, JSON_FORCE_OBJECT);
     }
+
     public function authAsAdmin(string $email, string $password): string
     {
         $bodyParams['identity'] = $email;
