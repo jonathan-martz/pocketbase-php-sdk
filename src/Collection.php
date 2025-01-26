@@ -22,7 +22,7 @@ class Collection
     /**
      * @var string
      */
-    public static string $token = '';
+    private static string $token = '';
 
     /**
      * @param string $url
@@ -41,12 +41,6 @@ class Collection
         }
     }
 
-    /**
-     * @param int $start
-     * @param int $end
-     * @param array $queryParams
-     * @return array
-     */
     public function getList(int $start = 1, int $end = 50, array $queryParams = []): array
     {
         $queryParams['perPage'] = $end;
@@ -56,12 +50,6 @@ class Collection
         return json_decode($response, JSON_FORCE_OBJECT);
     }
 
-    /**
-     * @param string $recordId
-     * @param string $field
-     * @param string $filepath
-     * @return void
-     */
     public function upload(string $recordId, string $field, string $filepath): void
     {
         $ch = curl_init($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId);
@@ -91,11 +79,6 @@ class Collection
         return $result;
     }
 
-    /**
-     * @param int $batch
-     * @param array $queryParams
-     * @return array
-     */
     public function getFullList(array $queryParams, int $batch = 200): array
     {
         $queryParams = [... $queryParams, 'perPage' => $batch];
@@ -105,11 +88,6 @@ class Collection
         return json_decode($response, JSON_FORCE_OBJECT);
     }
 
-    /**
-     * @param string $filter
-     * @param array $queryParams
-     * @return array
-     */
     public function getFirstListItem(string $filter, array $queryParams = []): array
     {
         // TODO filter
@@ -126,33 +104,17 @@ class Collection
         return $data['items'][0] ?? [];
     }
 
-    /**
-     * @param array $bodyParams
-     * @param array $queryParams
-     * @return void
-     */
     public function create(array $bodyParams = [], array $queryParams = []): string
     {
         return $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records", 'POST', $bodyParams);
     }
 
-    /**
-     * @param string $recordId
-     * @param array $bodyParams
-     * @param array $queryParams
-     * @return void
-     */
     public function update(string $recordId, array $bodyParams = [], array $queryParams = []): void
     {
         // Todo bodyParams equals json, currently workaround
         $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'PATCH', $bodyParams);
     }
 
-    /**
-     * @param string $recordId
-     * @param array $queryParams
-     * @return void
-     */
     public function delete(string $recordId, array $queryParams = []): void
     {
         // TODO params ?
@@ -178,11 +140,6 @@ class Collection
         return $response->getBody()->getContents() ?? '';
     }
 
-    /**
-     * @param string $recordId
-     * @param array $queryParams
-     * @return mixed
-     */
     public function getOne(string $recordId, array $queryParams = []): array
     {
         // TODO params ?
@@ -203,4 +160,38 @@ class Collection
 
         return $output;
     }
+
+    public static function getAuthToken(): string
+    {
+        return self::$token;
+    }
+
+    public static function setAuthToken(string $token): void
+    {
+        self::$token = $token;
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    public function setUrl(string $url): Collection
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+    public function getCollection(): string
+    {
+        return $this->collection;
+    }
+
+    public function setCollection(string $collection): Collection
+    {
+        $this->collection = $collection;
+        return $this;
+    }
+
+
 }

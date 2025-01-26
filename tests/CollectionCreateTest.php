@@ -22,7 +22,7 @@ class CollectionCreateTest extends TestCase
 
     public function testCreateCollectionItemAuthed(){
         $this->collection->authAsUser('admin@jmartz.de', 'rockt123?!');
-        self::assertNotEmpty($this->collection::$token);
+        self::assertNotEmpty($this->collection);
         // $response = $this->collection->create(['name' => 'Hallo Welt']);
         // var_dump($response);
     }
