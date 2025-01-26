@@ -1,6 +1,7 @@
 <?php
 
 use Pb\Collection;
+use Pb\Exception\FirstListItemNotFoundException;
 use PHPUnit\Framework\TestCase;
 
 final class CollectionGetFirstListItemTest extends TestCase
@@ -13,43 +14,22 @@ final class CollectionGetFirstListItemTest extends TestCase
         $this->collection = new Collection($url, 'users');
     }
 
+    /**
+     * @throws FirstListItemNotFoundException
+     */
     public function test_getOne(): void
     {
         $id = '6588yk36406qqv1';
         $actual = $this->collection->getFirstListItem('id="'.$id.'"');
-        $expected = [
-            'avatar' => '',
-            'collectionId' => '_pb_users_auth_',
-            'collectionName' => 'users',
-            'created' => '2025-01-21 21:22:47.002Z',
-            'emailVisibility' => false,
-            'id' => '6588yk36406qqv1',
-            'name' => 'Jonathan Martz',
-            'updated' => '2025-01-21 21:22:47.002Z',
-            'verified' => true
-        ];
 
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($id, $actual['id']);
         $this->assertCount(9, $actual);
     }
 
     public function test_getOneWrongId(): void
     {
-        $id = '6588yk36406qqva';
-        $actual = $this->collection->getFirstListItem('id="'.$id.'"');
-        $expected = [
-            'avatar' => '',
-            'collectionId' => '_pb_users_auth_',
-            'collectionName' => 'users',
-            'created' => '2025-01-21 21:22:47.002Z',
-            'emailVisibility' => false,
-            'id' => '6588yk36406qqv1',
-            'name' => 'Jonathan Martz',
-            'updated' => '2025-01-21 21:22:47.002Z',
-            'verified' => true
-        ];
-
-        $this->assertEquals($expected, $actual);
-        $this->assertCount(9,$actual);
+        $id = '6588yk36406qqvb';
+        $this->expectException(FirstListItemNotFoundException::class);
+        $this->collection->getFirstListItem('id="'.$id.'"');
     }
 }

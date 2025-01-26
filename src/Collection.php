@@ -2,6 +2,8 @@
 
 namespace Pb;
 
+use GuzzleHttp\Exception\GuzzleException;
+
 /**
  *
  */
@@ -27,7 +29,10 @@ class Collection
      * @param string $collection
      * @param string $token
      */
-    public function __construct(string $url, string $collection, string $token = '')
+    public function __construct(string $url,
+                                string $collection,
+                                string $token = ''
+    )
     {
         $this->url = $url;
         $this->collection = $collection;
@@ -111,10 +116,18 @@ class Collection
      */
     public function getFirstListItem(string $filter, array $queryParams = []): array
     {
+        // TODO filter
         $queryParams['perPage'] = 1;
+        $queryParams['filter'] = $filter;
         $getParams = !empty($queryParams) ? http_build_query($queryParams) : "";
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
-        return json_decode($response, JSON_FORCE_OBJECT)['items'][0];
+
+        $data = json_decode($response, JSON_FORCE_OBJECT);
+        if(empty($data['items']) || count($data['items']) < 1){
+            throw new exception\FirstListItemNotFoundException('First doesnt exists');
+        }
+
+        return $data['items'][0] ?? [];
     }
 
     /**
@@ -146,40 +159,19 @@ class Collection
      */
     public function delete(string $recordId, array $queryParams = []): void
     {
+        // TODO params ?
         $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'DELETE');
     }
 
-    /**
-     * @param string $recordId
-     * @param string $url
-     * @param string $method
-     * @return bool|string
-     */
     public function doRequest(string $url, string $method, $bodyParams = []): string
     {
-        // TODO move doRequestIntoService ?
-        // TODO replace curl with HttpClient
-        $ch = curl_init();
-
         if (self::$token != '') {
-            $headers = array(
-                'Content-Type:application/json',
-                'Authorization: ' . self::$token
-            );
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            // TODO token ?
         }
 
-        if ($bodyParams) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyParams);
-        }
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        $output = curl_exec($ch);
-        curl_close($ch);
-
-        return $output;
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request($method, $url,$bodyParams);
+        return $response->getBody()->getContents() ?? '';
     }
 
     /**
@@ -189,20 +181,16 @@ class Collection
      */
     public function getOne(string $recordId, array $queryParams = []): array
     {
+        // TODO params ?
         $output = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'GET');
         return json_decode($output, JSON_FORCE_OBJECT);
     }
-
-    /**
-     * @param string $email
-     * @param string $password
-     * @return void
-     */
     public function authAsAdmin(string $email, string $password): string
     {
         $bodyParams['identity'] = $email;
         $bodyParams['password'] = $password;
         $output = $this->doRequest($this->url . "/api/collections/_superusers/auth-with-password", 'POST', $bodyParams);
+
         $token = json_decode($output, true)['token'];
         if ($token) {
             self::$token = $token;
