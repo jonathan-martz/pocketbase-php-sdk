@@ -2,6 +2,8 @@
 
 namespace Pb;
 
+use GuzzleHttp\Exception\GuzzleException;
+
 /**
  *
  */
@@ -27,7 +29,10 @@ class Collection
      * @param string $collection
      * @param string $token
      */
-    public function __construct(string $url, string $collection, string $token = '')
+    public function __construct(string $url,
+                                string $collection,
+                                string $token = ''
+    )
     {
         $this->url = $url;
         $this->collection = $collection;
@@ -36,12 +41,6 @@ class Collection
         }
     }
 
-    /**
-     * @param int $start
-     * @param int $end
-     * @param array $queryParams
-     * @return array
-     */
     public function getList(int $start = 1, int $end = 50, array $queryParams = []): array
     {
         $queryParams['perPage'] = $end;
@@ -51,12 +50,6 @@ class Collection
         return json_decode($response, JSON_FORCE_OBJECT);
     }
 
-    /**
-     * @param string $recordId
-     * @param string $field
-     * @param string $filepath
-     * @return void
-     */
     public function upload(string $recordId, string $field, string $filepath): void
     {
         $ch = curl_init($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId);
@@ -76,25 +69,16 @@ class Collection
         $response = curl_exec($ch);
     }
 
-    /**
-     * @param string $email
-     * @param string $password
-     * @return void
-     */
-    public function authAsUser(string $email, string $password): string
+    public function authAsUser(string $email, string $password): array
     {
         $result = $this->doRequest($this->url . "/api/collections/users/auth-with-password", 'POST', ['identity' => $email, 'password' => $password]);
+        $result = json_decode($result, JSON_FORCE_OBJECT);
         if (!empty($result['token'])) {
             self::$token = $result['token'];
         }
         return $result;
     }
 
-    /**
-     * @param int $batch
-     * @param array $queryParams
-     * @return array
-     */
     public function getFullList(array $queryParams, int $batch = 200): array
     {
         $queryParams = [... $queryParams, 'perPage' => $batch];
@@ -104,110 +88,109 @@ class Collection
         return json_decode($response, JSON_FORCE_OBJECT);
     }
 
-    /**
-     * @param string $filter
-     * @param array $queryParams
-     * @return array
-     */
     public function getFirstListItem(string $filter, array $queryParams = []): array
     {
+        // TODO filter
         $queryParams['perPage'] = 1;
+        $queryParams['filter'] = $filter;
         $getParams = !empty($queryParams) ? http_build_query($queryParams) : "";
         $response = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records?" . $getParams, 'GET');
-        return json_decode($response, JSON_FORCE_OBJECT)['items'][0];
+
+        $data = json_decode($response, JSON_FORCE_OBJECT);
+        if (empty($data['items']) || count($data['items']) < 1) {
+            throw new exception\FirstListItemNotFoundException('First doesnt exists');
+        }
+
+        return $data['items'][0] ?? [];
     }
 
-    /**
-     * @param array $bodyParams
-     * @param array $queryParams
-     * @return void
-     */
     public function create(array $bodyParams = [], array $queryParams = []): string
     {
+        // TODO query params ?
         return $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records", 'POST', $bodyParams);
     }
 
-    /**
-     * @param string $recordId
-     * @param array $bodyParams
-     * @param array $queryParams
-     * @return void
-     */
     public function update(string $recordId, array $bodyParams = [], array $queryParams = []): void
     {
         // Todo bodyParams equals json, currently workaround
         $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'PATCH', $bodyParams);
     }
 
-    /**
-     * @param string $recordId
-     * @param array $queryParams
-     * @return void
-     */
     public function delete(string $recordId, array $queryParams = []): void
     {
+        // TODO params ?
         $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'DELETE');
     }
 
     /**
-     * @param string $recordId
-     * @param string $url
-     * @param string $method
-     * @return bool|string
+     * @throws GuzzleException
      */
     public function doRequest(string $url, string $method, $bodyParams = []): string
     {
-        // TODO move doRequestIntoService ?
-        // TODO replace curl with HttpClient
-        $ch = curl_init();
+        $tmp = $bodyParams;
+        $bodyParams = [];
+        $bodyParams['json'] = $tmp;
+        $bodyParams['headers']['Content-Type'] = 'application/json';
 
         if (self::$token != '') {
-            $headers = array(
-                'Content-Type:application/json',
-                'Authorization: ' . self::$token
-            );
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            $bodyParams['headers']['Authorization'] = 'Bearer ' . self::$token;
         }
 
-        if ($bodyParams) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyParams);
-        }
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        $output = curl_exec($ch);
-        curl_close($ch);
-
-        return $output;
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request($method, $url, $bodyParams);
+        return $response->getBody()->getContents() ?? '';
     }
 
-    /**
-     * @param string $recordId
-     * @param array $queryParams
-     * @return mixed
-     */
     public function getOne(string $recordId, array $queryParams = []): array
     {
+        // TODO params ?
         $output = $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records/" . $recordId, 'GET');
         return json_decode($output, JSON_FORCE_OBJECT);
     }
 
-    /**
-     * @param string $email
-     * @param string $password
-     * @return void
-     */
     public function authAsAdmin(string $email, string $password): string
     {
         $bodyParams['identity'] = $email;
         $bodyParams['password'] = $password;
         $output = $this->doRequest($this->url . "/api/collections/_superusers/auth-with-password", 'POST', $bodyParams);
+
         $token = json_decode($output, true)['token'];
         if ($token) {
             self::$token = $token;
         }
 
         return $output;
+    }
+
+    public static function getAuthToken(): string
+    {
+        return self::$token;
+    }
+
+    public static function setAuthToken(string $token): void
+    {
+        self::$token = $token;
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    public function setUrl(string $url): Collection
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+    public function getCollection(): string
+    {
+        return $this->collection;
+    }
+
+    public function setCollection(string $collection): Collection
+    {
+        $this->collection = $collection;
+        return $this;
     }
 }
