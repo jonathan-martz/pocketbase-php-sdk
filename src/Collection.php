@@ -69,10 +69,10 @@ class Collection
         $response = curl_exec($ch);
     }
 
-    public function authAsUser(string $email, string $password): string
+    public function authAsUser(string $email, string $password): array
     {
         $result = $this->doRequest($this->url . "/api/collections/users/auth-with-password", 'POST', ['identity' => $email, 'password' => $password]);
-        var_dump($result);
+        $result = json_decode($result, JSON_FORCE_OBJECT);
         if (!empty($result['token'])) {
             self::$token = $result['token'];
         }
@@ -106,6 +106,7 @@ class Collection
 
     public function create(array $bodyParams = [], array $queryParams = []): string
     {
+        // TODO query params ?
         return $this->doRequest($this->url . "/api/collections/" . $this->collection . "/records", 'POST', $bodyParams);
     }
 
@@ -192,6 +193,4 @@ class Collection
         $this->collection = $collection;
         return $this;
     }
-
-
 }

@@ -16,14 +16,20 @@ class CollectionCreateTest extends TestCase
     }
 
     public function testCreateCollectionItem(){
-        // $this->expectException(ClientException::class);
-        // $this->collection->create(['name' => 'Hallo Welt']);
+        $this->expectException(ClientException::class);
+        $this->expectExceptionCode(403);
+        $this->collection->create(['name' => 'Hallo Welt']);
     }
 
     public function testCreateCollectionItemAuthed(){
-        $this->collection->authAsUser('admin@jmartz.de', 'rockt123?!');
-        self::assertNotEmpty($this->collection);
-        // $response = $this->collection->create(['name' => 'Hallo Welt']);
-        // var_dump($response);
+        $this->collection->authAsUser('admin@jmartz.de', 'rockt123?!');#
+        self::assertNotEmpty($this->collection->getAuthToken());
+    }
+
+    public function testCreateCollectionItemAuthedAdmin(){
+        $this->collection->authAsAdmin('admin@jonathan-martz.de', 'rockt123?!');
+        $response = $this->collection->create(['email' => 'test@jonathan-martz.de','password' => 'rockt123?!','passwordConfirm' => 'rockt123?!']);
+        var_dump($response);
+        self::assertNotEmpty($this->collection->getAuthToken());
     }
 }
