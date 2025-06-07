@@ -32,7 +32,8 @@ class Settings
         $bodyParams['identity'] = $email;
         $bodyParams['password'] = $password;
         $output = $this->doRequest($this->url . "/api/collections/_superusers/auth-with-password", 'POST', $bodyParams);
-        self::$token = json_decode($output, true)['token'];
+        $data = json_decode($output, true);
+        self::$token = $data['token'] ?? '';
     }
 
     public function doRequest(string $url, string $method, $bodyParams = []): string
