@@ -1,34 +1,52 @@
 <?php
 
-namespace Pb;
+namespace PocketBase;
 
 class Client
 {
-    private string $url;
-    public string $token = '';
 
-    public function __construct(string $url)
+    public ?string $baseurl = null;
+    public ?string $token = null;
+    public HttpClient $http;
+
+    public function __construct($baseurl = null)
     {
-        $this->url = $url;
+        $this->baseurl = $baseurl ?? 'http://localhost:7090';
+        $this->http = new HttpClient();
+        $this->token = '';
     }
 
-    public function collection(string $collection): Collection
+    public function collection(string $name): Collection
     {
-        return new Collection($this->url ,$collection, $this->token);
+        return new Collection($this->baseurl, $name);
     }
 
-    public function settings(): Settings
-    {
-        return new Settings($this->url, $this->token);
+    public function setBaseUrl($baseurl){
+        $this->baseurl = $baseurl;
     }
 
-    public function setAuthToken(string $token): void
-    {
-        $this->token = $token;
+    public function getBaseUrl(){
+        return $this->baseurl;
     }
 
-    public function getAuthToken(): string
+    public function getToken(): ?string
     {
         return $this->token;
+    }
+
+    public function setToken(?string $token): void
+    {
+       $this->token = $token;
+    }
+
+    public function getHttp(): HttpClient
+    {
+        return $this->http;
+    }
+
+    public function setHttp(HttpClient $http): Client
+    {
+        $this->http = $http;
+        return $this;
     }
 }
