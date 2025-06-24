@@ -1,48 +1,46 @@
 <?php
 
-use Pb\Client;
-use Pb\Collection;
-use Pb\Settings;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PocketBase\Client;
+use PocketBase\Collection;
+use PocketBase\HttpClient;
 
 final class ClientTest extends TestCase
 {
-    private Collection $collection;
-    private ?string $url;
 
-    protected function setUp(): void
-    {
-        $this->url = getenv('POCKETBASE_URL') ?: 'https://admin.pocketbase.dev';
-        $this->collection = new Collection($this->url, 'users');
-    }
+    private Collection $collection;
+    private ?Client $client = null;
+    public  ?HttpClient $http = null;
 
     public function test_collection(): void
     {
-        $pb = new Client($this->url);
-
-        $actual = $pb->collection('users');
-
-        $this->assertEquals($actual, $this->collection);
+        $this->client = new Client();
+        $this->collection = $this->client->collection('_superusers');
+        $this->assertEquals(Collection::class, get_class($this->collection));
     }
 
-    public function test_settings(): void
+    public function test_authAsUser(): void
     {
-        $pb = new Client($this->url);
+        $this->client = new Client();
+        $this->collection = $this->client->collection('users');
+        $this->collection->setPath('/api/collections/users/auth-with-password');
 
-        $actual = $pb->settings();
-
-        $this->assertEquals($actual, new Settings($this->url));
+        $token = $this->collection->authAsUser('admin@jonathan-martz.de', 'Password123');
+        $this->assertNotEmpty($token);
     }
 
-    public function test_setToken(){
-        $token = 'test123';
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    // @sk
+    public function test_authAsAdmin(): void
+    {
+        $this->client = new Client();
+        $this->collection = $this->client->collection('_superusers');
+        $this->collection->setPath('/api/collections/' . $this->collection->getName() . '/auth-with-password');
 
-        $pb = new Client($this->url);
-        $pb->setAuthToken($token);
-
-        $this->assertEquals($token, $pb->getAuthToken());
-        $this->assertEquals($token, $pb->token);
-        $pb->token = 'test456';
-        $this->assertEquals('test456', $pb->getAuthToken());
+        $token = $this->collection->authAsUser('admin@jonathan-martz.de', 'Password123');
+        $this->assertNotEmpty($token);
     }
 }
