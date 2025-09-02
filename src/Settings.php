@@ -41,7 +41,6 @@ class Settings
 
         if (self::$token != '') {
             $headers = array(
-                'Content-Type:application/json',
                 'Authorization: ' . self::$token
             );
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
